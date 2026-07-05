@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Prompts Dashboard</title>
+  <style>
+    :root {
+      --background: #09090b;
+      --foreground: #fafafa;
+      --card: #09090b;
+      --card-border: #27272a;
+      --input-border: #27272a;
+      --input-bg: #09090b;
+      --primary: #ffffff;
+      --primary-foreground: #09090b;
+      --muted-foreground: #a1a1aa;
+      --accent: #27272a;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--background);
+      color: var(--foreground);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* Phase 1 Isolation Layout */
+    #auth-container {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: var(--background);
+      padding: 1.5rem;
+      z-index: 9999;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 400px;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      background-color: var(--card);
+      padding: 2rem;
+    }
+
+    .auth-header {
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .auth-header h1 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      letter-spacing: -0.05em;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      background-color: var(--input-bg);
+      border: 1px solid var(--input-border);
+      border-radius: 6px;
+      color: var(--foreground);
+      font-size: 0.875rem;
+      padding: 0.75rem;
+      text-align: center;
+      transition: border-color 0.15s ease;
+    }
+
+    input[type="password"]:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    button {
+      width: 100%;
+      background-color: var(--primary);
+      color: var(--primary-foreground);
+      border: none;
+      border-radius: 6px;
+      padding: 0.75rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+
+    button:hover {
+      opacity: 0.9;
+    }
+
+    /* Phase 2/3 Workspace Layout Architecture */
+    #dashboard-container {
+      display: none; /* Total isolation implementation */
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem;
+    }
+
+    .dashboard-header {
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .dashboard-header h2 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.05em;
+    }
+
+    .grid-layout {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .prompt-card {
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      background-color: var(--card);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 380px;
+    }
+
+    .card-body {
+      padding: 1.25rem;
+      overflow-y: auto;
+      flex-grow: 1;
+    }
+
+    .card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 0.75rem;
+      letter-spacing: -0.02em;
+      border-bottom: 1px dashed var(--card-border);
+      padding-bottom: 0.5rem;
+    }
+
+    .card-text {
+      font-size: 0.85rem;
+      color: var(--muted-foreground);
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: monospace;
+      line-height: 1.5;
+    }
+
+    .card-footer {
+      padding: 0.75rem 1.25rem;
+      border-top: 1px solid var(--card-border);
+      background-color: rgba(255, 255, 255, 0.01);
+    }
+
+    .copy-btn {
+      background-color: var(--accent);
+      color: var(--foreground);
+      border: 1px solid var(--card-border);
+    }
+
+    .copy-btn:hover {
+      background-color: var(--primary);
+      color: var(--primary-foreground);
+    }
+
+    .copy-btn.success {
+      background-color: #10b981;
+      color: #ffffff;
+      border-color: #10b981;
+      cursor: default;
+    }
+  </style>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js" 
+          integrity="sha512-a+SUDuwNzvledxgANgjwUXhVwpOIW23wGa4MhJe6c3ChrCJTOX9Cwc0T459TWZAgHd0cSt3VvupXi/7nni21XA==" 
+          crossorigin="anonymous" 
+          referrerpolicy="no-referrer"></script>
+</head>
+<body>
+
+  <section id="auth-container">
+    <div class="auth-card">
+      <header class="auth-header">
+        <h1>Decrypt Architecture Initialization</h1>
+      </header>
+      <div class="form-group">
+        <input type="password" id="dashboard-key" autocomplete="off" placeholder="Enter System Master Key">
+      </div>
+      <div class="form-group">
+        <button id="unlock-btn">Unlock Secure Workspace</button>
+      </div>
+    </div>
+  </section>
+
+  <main id="dashboard-container">
+    <header class="dashboard-header">
+      <h2>Cryptographic Workspace</h2>
+    </header>
+    <section class="grid-layout" id="grid-mount"></section>
+  </main>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // Enforce zero fallback cache state on active process frame execution
+      window.onload = function() {
+        document.getElementById('dashboard-key').value = '';
+      };
+
+      document.getElementById('unlock-btn').addEventListener('click', async function() {
+        const keyInput = document.getElementById('dashboard-key');
+        let secretKey = keyInput.value;
+
+        // Immediate cleanup of DOM element vector reference
+        keyInput.value = '';
+
+        if (!secretKey) {
+          alert('Access Denied: Master authentication parameter key array required.');
+          secretKey = null;
+          return;
+        }
+
+        try {
+          // Absolute relative payload routing pipeline configuration using precise cache rules
+          const response = await fetch('./data.json', {
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-store',
+              'Pragma': 'no-cache'
+            }
+          });
+
+          if (!response.ok) {
+            throw new Error('Network Database Target Fetch Failure Event.');
+          }
+
+          let networkCiphertext = await response.text();
+          networkCiphertext = networkCiphertext.trim();
+
+          // Initialize isolated localized memory transformation engine
+          let derivedBytes = CryptoJS.AES.decrypt(networkCiphertext, secretKey);
+          let rawDecryptedString = derivedBytes.toString(CryptoJS.enc.Utf8);
+
+          // Force execution state garbage collection routine allocations
+          secretKey = null;
+          networkCiphertext = null;
+          derivedBytes = null;
+
+          if (!rawDecryptedString) {
+            throw new Error('Cryptographic Checksum Mismatch Validation Error.');
+          }
+
+          let operationalPayloadArray = JSON.parse(rawDecryptedString);
+          rawDecryptedString = null;
+
+          // Handoff to decoupled rendering array
+          executeWorkspacePopulation(operationalPayloadArray);
+          operationalPayloadArray = null;
+
+          // Transition Layout states cleanly inside safe rendering frames
+          document.getElementById('auth-container').style.display = 'none';
+          document.getElementById('dashboard-container').style.display = 'block';
+
+        } catch (error) {
+          alert('Access Denied: Incorrect Cryptographic Master Key Verification.');
+          secretKey = null;
+        }
+      });
+
+      function executeWorkspacePopulation(dataCollection) {
+        const structuralGridElement = document.getElementById('grid-mount');
+        
+        dataCollection.forEach(function(item) {
+          const baseCard = document.createElement('article');
+          baseCard.className = 'prompt-card';
+
+          const innerBody = document.createElement('div');
+          innerBody.className = 'card-body';
+
+          const headNode = document.createElement('h3');
+          headNode.className = 'card-title';
+          headNode.textContent = item.title;
+
+          const contentsNode = document.createElement('pre');
+          contentsNode.className = 'card-text';
+          contentsNode.textContent = item.text;
+
+          innerBody.appendChild(headNode);
+          innerBody.appendChild(contentsNode);
+
+          const footerWrapper = document.createElement('div');
+          footerWrapper.className = 'card-footer';
+
+          const actionButton = document.createElement('button');
+          actionButton.className = 'copy-btn';
+          actionButton.textContent = 'Copy Prompt';
+
+          actionButton.addEventListener('click', function() {
+            navigator.clipboard.writeText(item.text).then(function() {
+              actionButton.textContent = 'Copied!';
+              actionButton.classList.add('success');
+              actionButton.disabled = true;
+
+              setTimeout(function() {
+                actionButton.textContent = 'Copy Prompt';
+                actionButton.classList.remove('success');
+                actionButton.disabled = false;
+              }, 1500);
+            });
+          });
+
+          footerWrapper.appendChild(actionButton);
+          baseCard.appendChild(innerBody);
+          baseCard.appendChild(footerWrapper);
+          structuralGridElement.appendChild(baseCard);
+        });
+      }
+    })();
+  </script>
+</body>
+</html>
