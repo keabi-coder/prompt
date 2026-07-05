@@ -17,6 +17,28 @@
       --success: #16a34a;
     }
 
+    html.light-mode {
+      --bg: #ffffff;
+      --fg: #0f0f0f;
+      --border: #e4e4e7;
+      --card: #f5f5f5;
+      --accent: #e4e4e7;
+      --primary: #09090b;
+      --primary-fg: #ffffff;
+      --muted: #71717a;
+    }
+
+    html.dark-mode {
+      --bg: #09090b;
+      --fg: #fafafa;
+      --border: #27272a;
+      --card: #09090b;
+      --accent: #18181b;
+      --primary: #ffffff;
+      --primary-fg: #09090b;
+      --muted: #a1a1aa;
+    }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -28,6 +50,7 @@
       align-items: flex-start;
       min-height: 100vh;
       padding: 4rem 1.5rem;
+      transition: background-color 0.2s ease, color 0.2s ease;
     }
 
     .vault-container {
@@ -38,11 +61,16 @@
       background-color: var(--card);
       padding: 2.5rem;
       box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+      transition: background-color 0.2s ease, border-color 0.2s ease;
     }
 
     header {
       margin-bottom: 2rem;
       text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
     }
 
     h1 {
@@ -55,6 +83,23 @@
     p.subtitle {
       color: var(--muted);
       font-size: 0.9rem;
+    }
+
+    .theme-toggle {
+      width: auto;
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      background-color: var(--accent);
+      color: var(--fg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.15s ease, color 0.15s ease;
+    }
+
+    .theme-toggle:hover {
+      background-color: var(--primary);
+      color: var(--primary-fg);
     }
 
     /* Auth Screen styling */
@@ -85,7 +130,7 @@
       font-size: 0.9rem;
       text-align: center;
       letter-spacing: 0.1em;
-      transition: border-color 0.15s ease;
+      transition: border-color 0.15s ease, background-color 0.2s ease, color 0.2s ease;
     }
 
     input[type="password"]:focus {
@@ -120,6 +165,7 @@
       padding-bottom: 0.75rem;
       margin-bottom: 1.5rem;
       overflow-x: auto;
+      transition: border-color 0.2s ease;
     }
 
     .tab-btn {
@@ -133,6 +179,7 @@
       cursor: pointer;
       white-space: nowrap;
       width: auto;
+      transition: color 0.15s ease, background-color 0.15s ease;
     }
 
     .tab-btn:hover {
@@ -151,6 +198,11 @@
       border-radius: 6px;
       padding: 1.25rem;
       position: relative;
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    html.light-mode .display-box {
+      background-color: #fafafa;
     }
 
     .prompt-text-area {
@@ -164,6 +216,11 @@
       overflow-y: auto;
       margin-top: 1rem;
       padding-right: 0.5rem;
+      transition: color 0.2s ease;
+    }
+
+    html.light-mode .prompt-text-area {
+      color: #0f0f0f;
     }
 
     .actions-bar {
@@ -179,6 +236,7 @@
       background-color: var(--accent);
       color: var(--fg);
       border: 1px solid var(--border);
+      transition: background-color 0.15s ease, color 0.15s ease, border-color 0.2s ease;
     }
 
     .action-btn:hover {
@@ -193,6 +251,7 @@
     <header>
       <h1>System Prompt Repository</h1>
       <p class="subtitle" id="flow-status">Secure End-to-End Cryptographic Node Vault</p>
+      <button class="theme-toggle" id="theme-toggle">🌙 Dark Mode</button>
     </header>
 
     <div id="auth-screen">
@@ -221,6 +280,32 @@
 
       let globalDecryptedMatrix = null;
       let activeIndex = 0;
+
+      // Initialize theme on page load
+      function initializeTheme() {
+        const savedTheme = localStorage.getItem('theme') || 'dark-mode';
+        document.documentElement.classList.add(savedTheme);
+        updateThemeToggleButton(savedTheme);
+      }
+
+      // Update theme toggle button text
+      function updateThemeToggleButton(theme) {
+        const btn = document.getElementById('theme-toggle');
+        btn.textContent = theme === 'dark-mode' ? '☀️ Light Mode' : '🌙 Dark Mode';
+      }
+
+      // Theme toggle handler
+      document.getElementById('theme-toggle').addEventListener('click', function() {
+        const html = document.documentElement;
+        const isDarkMode = html.classList.contains('dark-mode');
+        
+        html.classList.remove(isDarkMode ? 'dark-mode' : 'light-mode');
+        const newTheme = isDarkMode ? 'light-mode' : 'dark-mode';
+        html.classList.add(newTheme);
+        
+        localStorage.setItem('theme', newTheme);
+        updateThemeToggleButton(newTheme);
+      });
 
       // Base64 helper converter pipeline
       function base64ToBuffer(b64) {
@@ -347,6 +432,9 @@
           alert('Failed to copy to clipboard.');
         });
       });
+
+      // Initialize theme on page load
+      initializeTheme();
 
     })();
   </script>
