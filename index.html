@@ -157,10 +157,11 @@
     #vault-screen {
       display: none;
       transition: opacity 0.6s ease-out;
-      user-select: none;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
+      /* Allow text selection in the vault */
+      user-select: text;
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
     }
 
     #vault-screen.blur-in {
@@ -235,10 +236,11 @@
       margin-top: 1rem;
       padding-right: 0.5rem;
       transition: color 0.2s ease;
-      user-select: none;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
+      /* Allow users to select and copy the prompt text */
+      user-select: text;
+      -webkit-user-select: text;
+      -moz-user-select: text;
+      -ms-user-select: text;
     }
 
     html.light-mode .prompt-text-area {
@@ -259,13 +261,13 @@
       color: var(--fg);
       border: 1px solid var(--border);
       transition: background-color 0.15s ease, color 0.15s ease, border-color 0.2s ease;
-      cursor: not-allowed;
-      opacity: 0.5;
+      cursor: pointer;
+      opacity: 1;
     }
 
     .action-btn:hover {
-      background-color: var(--accent);
-      color: var(--fg);
+      background-color: var(--primary);
+      color: var(--primary-fg);
     }
   </style>
 </head>
@@ -291,7 +293,7 @@
       
       <div class="display-box">
         <div class="actions-bar">
-          <button class="action-btn" id="copy-btn" disabled>Copy to Clipboard</button>
+          <button class="action-btn" id="copy-btn">Copy to Clipboard</button>
         </div>
         <div class="prompt-text-area" id="prompt-content-view"></div>
       </div>
@@ -444,9 +446,21 @@
         displayArea.textContent = globalDecryptedMatrix[activeIndex].text;
       }
 
-      // Copy button is now disabled
-      document.getElementById('copy-btn').addEventListener('click', function(e) {
+      // Copy button now copies the visible prompt content to clipboard
+      document.getElementById('copy-btn').addEventListener('click', async function(e) {
         e.preventDefault();
+        const displayArea = document.getElementById('prompt-content-view');
+        const text = displayArea.textContent || '';
+        try {
+          await navigator.clipboard.writeText(text);
+          const btn = document.getElementById('copy-btn');
+          const original = btn.textContent;
+          btn.textContent = 'Copied!';
+          setTimeout(() => { btn.textContent = original; }, 2000);
+        } catch (err) {
+          console.error('Copy failed', err);
+          alert('Copy failed: ' + (err && err.message ? err.message : err));
+        }
         return false;
       });
 
