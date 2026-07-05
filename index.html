@@ -156,8 +156,7 @@
     /* Vault App dashboard views */
     #vault-screen {
       display: none;
-      filter: blur(8px);
-      transition: filter 0.6s ease-out;
+      transition: opacity 0.6s ease-out;
       user-select: none;
       -webkit-user-select: none;
       -moz-user-select: none;
@@ -165,16 +164,14 @@
     }
 
     #vault-screen.blur-in {
-      animation: blurIn 0.8s ease-out forwards;
+      animation: fadeIn 0.8s ease-out forwards;
     }
 
-    @keyframes blurIn {
+    @keyframes fadeIn {
       from {
-        filter: blur(8px);
-        opacity: 0.7;
+        opacity: 0;
       }
       to {
-        filter: blur(8px);
         opacity: 1;
       }
     }
@@ -238,6 +235,10 @@
       margin-top: 1rem;
       padding-right: 0.5rem;
       transition: color 0.2s ease;
+      user-select: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
     }
 
     html.light-mode .prompt-text-area {
@@ -258,11 +259,13 @@
       color: var(--fg);
       border: 1px solid var(--border);
       transition: background-color 0.15s ease, color 0.15s ease, border-color 0.2s ease;
+      cursor: not-allowed;
+      opacity: 0.5;
     }
 
     .action-btn:hover {
-      background-color: var(--fg);
-      color: var(--bg);
+      background-color: var(--accent);
+      color: var(--fg);
     }
   </style>
 </head>
@@ -288,7 +291,7 @@
       
       <div class="display-box">
         <div class="actions-bar">
-          <button class="action-btn" id="copy-btn">Copy to Clipboard</button>
+          <button class="action-btn" id="copy-btn" disabled>Copy to Clipboard</button>
         </div>
         <div class="prompt-text-area" id="prompt-content-view"></div>
       </div>
@@ -393,7 +396,7 @@
           const vaultScreen = document.getElementById('vault-screen');
           vaultScreen.style.display = 'block';
           
-          // Trigger blur animation
+          // Trigger fade animation instead of blur
           setTimeout(() => {
             vaultScreen.classList.add('blur-in');
           }, 10);
@@ -441,24 +444,10 @@
         displayArea.textContent = globalDecryptedMatrix[activeIndex].text;
       }
 
-      // One-Click copy utility operational logic
-      document.getElementById('copy-btn').addEventListener('click', function() {
-        if (!globalDecryptedMatrix || !globalDecryptedMatrix[activeIndex]) return;
-
-        const targetText = globalDecryptedMatrix[activeIndex].text;
-        const copyButton = document.getElementById('copy-btn');
-
-        navigator.clipboard.writeText(targetText).then(() => {
-          copyButton.textContent = "Copied!";
-          copyButton.style.color = "var(--success)";
-          
-          setTimeout(() => {
-            copyButton.textContent = "Copy to Clipboard";
-            copyButton.style.color = "var(--fg)";
-          }, 2000);
-        }).catch(err => {
-          alert('Failed to copy to clipboard.');
-        });
+      // Copy button is now disabled
+      document.getElementById('copy-btn').addEventListener('click', function(e) {
+        e.preventDefault();
+        return false;
       });
 
       // Initialize theme on page load
