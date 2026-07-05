@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Secure Prompt Matrix // Vault Portal</title>
+  <style>
+    :root {
+      --bg: #09090b;
+      --fg: #fafafa;
+      --border: #27272a;
+      --card: #09090b;
+      --accent: #18181b;
+      --primary: #ffffff;
+      --primary-fg: #09090b;
+      --muted: #a1a1aa;
+      --success: #16a34a;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      min-height: 100vh;
+      padding: 4rem 1.5rem;
+    }
+
+    .vault-container {
+      width: 100%;
+      max-width: 750px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background-color: var(--card);
+      padding: 2.5rem;
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    header {
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 1.75rem;
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      margin-bottom: 0.5rem;
+    }
+
+    p.subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    /* Auth Screen styling */
+    #auth-screen {
+      max-width: 450px;
+      margin: 0 auto;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: #e4e4e7;
+    }
+
+    input[type="password"] {
+      width: 100%;
+      background-color: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--fg);
+      padding: 0.85rem;
+      font-size: 0.9rem;
+      text-align: center;
+      letter-spacing: 0.1em;
+      transition: border-color 0.15s ease;
+    }
+
+    input[type="password"]:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    button {
+      width: 100%;
+      background-color: var(--primary);
+      color: var(--primary-fg);
+      border: none;
+      border-radius: 6px;
+      padding: 0.85rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s ease;
+    }
+
+    button:hover { opacity: 0.9; }
+
+    /* Vault App dashboard views */
+    #vault-screen {
+      display: none;
+    }
+
+    .tabs-nav {
+      display: flex;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.75rem;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      background: none;
+      color: var(--muted);
+      border: 1px solid transparent;
+      padding: 0.5rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+      white-space: nowrap;
+      width: auto;
+    }
+
+    .tab-btn:hover {
+      color: var(--fg);
+      background-color: var(--accent);
+    }
+
+    .tab-btn.active {
+      background-color: var(--primary);
+      color: var(--primary-fg);
+    }
+
+    .display-box {
+      background-color: #0c0c0e;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 1.25rem;
+      position: relative;
+    }
+
+    .prompt-text-area {
+      font-family: monospace;
+      font-size: 0.875rem;
+      line-height: 1.6;
+      color: #e4e4e7;
+      white-space: pre-wrap;
+      word-break: break-word;
+      max-height: 400px;
+      overflow-y: auto;
+      margin-top: 1rem;
+      padding-right: 0.5rem;
+    }
+
+    .actions-bar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+
+    .action-btn {
+      width: auto;
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      background-color: var(--accent);
+      color: var(--fg);
+      border: 1px solid var(--border);
+    }
+
+    .action-btn:hover {
+      background-color: var(--fg);
+      color: var(--bg);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="vault-container">
+    <header>
+      <h1>System Prompt Repository</h1>
+      <p class="subtitle" id="flow-status">Secure End-to-End Cryptographic Node Vault</p>
+    </header>
+
+    <div id="auth-screen">
+      <div class="form-group">
+        <label for="vault-key">Access Authorization Key</label>
+        <input type="password" id="vault-key" placeholder="••••••••••••" autocomplete="current-password">
+      </div>
+      <button id="unlock-btn">Decrypt & Initialize Workspace</button>
+    </div>
+
+    <div id="vault-screen">
+      <div class="tabs-nav" id="tabs-container"></div>
+      
+      <div class="display-box">
+        <div class="actions-bar">
+          <button class="action-btn" id="copy-btn">Copy to Clipboard</button>
+        </div>
+        <div class="prompt-text-area" id="prompt-content-view"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      'use strict';
+
+      let globalDecryptedMatrix = null;
+      let activeIndex = 0;
+
+      // Base64 helper converter pipeline
+      function base64ToBuffer(b64) {
+        const bin = atob(b64);
+        const buf = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) {
+          buf[i] = bin.charCodeAt(i);
+        }
+        return buf.buffer;
+      }
+
+      // Explicit authentication execution trigger
+      document.getElementById('unlock-btn').addEventListener('click', async function() {
+        const passwordField = document.getElementById('vault-key');
+        const pass = passwordField.value;
+
+        if (!pass) {
+          alert('Access Refused: Master Passphrase cannot be verified blank.');
+          return;
+        }
+
+        document.getElementById('unlock-btn').textContent = "Processing Cryptographic Engine...";
+
+        try {
+          // 1. Fetch remote secure envelope from database target
+          const response = await fetch('data.json');
+          if (!response.ok) throw new Error("Could not load data.json database resource profile.");
+          
+          const envelope = await response.json();
+
+          const salt = base64ToBuffer(envelope.salt);
+          const iv = base64ToBuffer(envelope.iv);
+          const ciphertext = base64ToBuffer(envelope.ciphertext);
+
+          // 2. Re-derive security keys locally via browser SubtleCrypto
+          const enc = new TextEncoder();
+          const baseKey = await window.crypto.subtle.importKey(
+            "raw", enc.encode(pass), { name: "PBKDF2" }, false, ["deriveKey"]
+          );
+
+          const cryptoKey = await window.crypto.subtle.deriveKey(
+            { name: "PBKDF2", salt: salt, iterations: 100000, hash: "SHA-256" },
+            baseKey,
+            { name: "AES-GCM", length: 256 },
+            false,
+            ["decrypt"]
+          );
+
+          // 3. Perform modern decryption authentication verification pass
+          const decryptedBuffer = await window.crypto.subtle.decrypt(
+            { name: "AES-GCM", iv: iv },
+            cryptoKey,
+            ciphertext
+          );
+
+          const dec = new TextDecoder();
+          globalDecryptedMatrix = JSON.parse(dec.decode(decryptedBuffer));
+
+          // Clear validation values permanently out of window scope arrays
+          passwordField.value = '';
+
+          // Transition display screen modules
+          document.getElementById('auth-screen').style.display = 'none';
+          document.getElementById('vault-screen').style.display = 'block';
+          document.getElementById('flow-status').textContent = "Vault Status: Decrypted & Open";
+          document.getElementById('flow-status').style.color = "var(--success)";
+
+          buildDashboardLayout();
+
+        } catch (err) {
+          alert('Authorization Refused: Invalid master validation signature key.');
+          document.getElementById('unlock-btn').textContent = "Decrypt & Initialize Workspace";
+          console.error(err);
+        }
+      });
+
+      function buildDashboardLayout() {
+        const tabsContainer = document.getElementById('tabs-container');
+        tabsContainer.innerHTML = '';
+
+        globalDecryptedMatrix.forEach((item, index) => {
+          const btn = document.createElement('button');
+          btn.className = `tab-btn ${index === activeIndex ? 'active' : ''}`;
+          btn.textContent = item.title;
+          btn.addEventListener('click', () => {
+            activeIndex = index;
+            updateActiveView();
+          });
+          tabsContainer.appendChild(btn);
+        });
+
+        updateActiveView();
+      }
+
+      function updateActiveView() {
+        // Toggle tab highlights
+        const tabs = document.querySelectorAll('.tab-btn');
+        tabs.forEach((tab, idx) => {
+          if (idx === activeIndex) tab.classList.add('active');
+          else tab.classList.remove('active');
+        });
+
+        // Set prompt viewing data panel state
+        const displayArea = document.getElementById('prompt-content-view');
+        displayArea.textContent = globalDecryptedMatrix[activeIndex].text;
+      }
+
+      // One-Click copy utility operational logic
+      document.getElementById('copy-btn').addEventListener('click', function() {
+        if (!globalDecryptedMatrix || !globalDecryptedMatrix[activeIndex]) return;
+
+        const targetText = globalDecryptedMatrix[activeIndex].text;
+        const copyButton = document.getElementById('copy-btn');
+
+        navigator.clipboard.writeText(targetText).then(() => {
+          copyButton.textContent = "Copied!";
+          copyButton.style.color = "var(--success)";
+          
+          setTimeout(() => {
+            copyButton.textContent = "Copy to Clipboard";
+            copyButton.style.color = "var(--fg)";
+          }, 2000);
+        }).catch(err => {
+          alert('Failed to copy to clipboard.');
+        });
+      });
+
+    })();
+  </script>
+</body>
+</html>
