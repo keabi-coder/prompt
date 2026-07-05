@@ -156,6 +156,23 @@
     /* Vault App dashboard views */
     #vault-screen {
       display: none;
+      filter: blur(0px);
+      transition: filter 0.6s ease-out;
+    }
+
+    #vault-screen.blur-in {
+      animation: blurIn 0.8s ease-out forwards;
+    }
+
+    @keyframes blurIn {
+      from {
+        filter: blur(8px);
+        opacity: 0.7;
+      }
+      to {
+        filter: blur(0px);
+        opacity: 1;
+      }
     }
 
     .tabs-nav {
@@ -369,7 +386,14 @@
 
           // Transition display screen modules
           document.getElementById('auth-screen').style.display = 'none';
-          document.getElementById('vault-screen').style.display = 'block';
+          const vaultScreen = document.getElementById('vault-screen');
+          vaultScreen.style.display = 'block';
+          
+          // Trigger blur animation
+          setTimeout(() => {
+            vaultScreen.classList.add('blur-in');
+          }, 10);
+          
           document.getElementById('flow-status').textContent = "Vault Status: Decrypted & Open";
           document.getElementById('flow-status').style.color = "var(--success)";
 
